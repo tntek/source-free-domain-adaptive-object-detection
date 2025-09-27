@@ -1,0 +1,26 @@
+_BASE_: "../Base-RCNN-C4.yaml"
+MODEL:
+  META_ARCHITECTURE: "GeneralizedRCNN"
+  WEIGHTS: "/home/eason/AAAI/aa/source_model/R-101.pkl"
+  MASK_ON: False
+  RESNETS:
+    DEPTH: 101
+  RPN:
+    PRE_NMS_TOPK_TEST: 6000
+    POST_NMS_TOPK_TEST: 300
+    # ANCHOR_SIZES: (128, 256, 512)
+  ROI_HEADS:
+    NUM_CLASSES: 6
+INPUT:
+  MIN_SIZE_TRAIN: (600,)
+  MIN_SIZE_TEST: 600
+DATASETS:
+  TRAIN: ("voc_2007_trainval","voc_2012_trainval")
+  TEST: ("watercolor_test",)
+SOLVER:
+  STEPS: (90000, 100000)
+  MAX_ITER: 120000
+  # WARMUP_ITERS: 200
+  BASE_LR: 0.001
+  IMS_PER_BATCH: 1
+OUTPUT_DIR: "VOC_baseline"

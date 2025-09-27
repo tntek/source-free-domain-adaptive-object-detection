@@ -1,0 +1,42 @@
+MODEL:
+  META_ARCHITECTURE: "student_sfda_RCNN_wscol"
+  WEIGHT: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: False
+  RPN:
+    PRE_NMS_TOPK_TEST: 6000
+    POST_NMS_TOPK_TEST: 300
+    ANCHOR_SIZES: (128, 256, 512)
+  ROI_HEADS:
+    NUM_CLASSES: 6
+  RESNETS:
+    NORM: "FrozenBN" 
+    DEPTH: 50
+    OUT_FEATURES: ["res4"]
+INPUT:
+  MIN_SIZE_TRAIN: (600,)
+  MIN_SIZE_TEST: 600
+DATASETS:
+  TRAIN: ("watercolor_train",)
+  TEST: ("watercolor_test",)
+SOLVER:
+  BASE_LR: 0.001
+  WEIGHT_DECAY: 0.0001
+  STEPS: ()
+  MAX_ITER: 70000
+  IMS_PER_BATCH: 1
+  WARMUP_ITERS: 0
+SOURCE_FREE:
+  TYPE: True
+  MODE: True
+OUTPUT_DIR: "./checkpoint/watercolor"
+STYLE: 
+  PATH : /home/eason/AAAI/aa/dataset/watercolor/JPEGImages
+  ENABLED : False
+  ENCODER : /home/eason/AAAI/aa/style_models/vgg16_ori.pth
+  DECODER : /home/eason/AAAI/aa/style_models/voc2wc/decoder_iter_160000.pth
+  FC1 : /home/eason/AAAI/aa/style_models/voc2wc/fc1_iter_160000.pth
+  FC2 : /home/eason/AAAI/aa/style_models/voc2wc/fc2_iter_160000.pth
+  ID : /home/eason/AAAI/aa/dataset/watercolor/ImageSets/Main/train.txt
+# SEED: 48270820
+# SEED: -1
+SEED: 17731508

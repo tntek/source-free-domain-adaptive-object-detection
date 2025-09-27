@@ -1,0 +1,54 @@
+def con_loss(s_feat,labels,temp,mask=None):    
+
+    label_matrix = labels.unsqueeze(1) == labels.unsqueeze(0)
+    mask = label_matrix.float()
+    mask.fill_diagonal_(1)
+    #去除负样本：
+    mask_rows = (labels == 8).unsqueeze(1).float()
+    mask_cols = (labels == 8).unsqueeze(0).float()
+
+    # 更新mask，将与标签8相关的行和列设置为负样本
+    # 你可以根据需要选择将它们设置为0或其他负值
+    mask = mask * (1 - mask_rows) * (1 - mask_cols)
+
+    anchor_feat = F.normalize(s_feat, dim=1) #pos
+    # contrast_feat = F.normalize(contrast_feat, dim=1) #neg
+
+    ss_anchor_dot_contrast = torch.div(torch.matmul(anchor_feat, anchor_feat.T), temp)  ##### torch.Size([6, 6])       similarity
+    logits_max, _ = torch.max(ss_anchor_dot_contrast, dim=1, keepdim=True)  ##### torch.Size([6, 1]) - contains max value along dim=1
+    ss_graph_logits = ss_anchor_dot_contrast - logits_max.detach()
+
+    ss_graph_all_logits = torch.exp(ss_graph_logits) #
+    ss_log_prob = ss_graph_logits - torch.log(ss_graph_all_logits.sum(1, keepdim=True)) #
+    eps = 1e-9
+    ss_mean_log_prob_pos = (mask * ss_log_prob).sum(1) / (mask.sum(1) + eps)
+
+    # loss
+    ss_loss = - (temp / (temp*2)) * ss_mean_log_prob_pos
+    index = torch.where(ss_loss!=0)[0]
+    ss_loss = ss_loss[index].mean()
+
+    return ss_loss
+
+
+    def graph_consistency(self,teacher_fea,student_fea):
+        st_fea = 0.5 *(teacher_fea + student_fea)
+        tt = self.graph_sim(teacher_fea,teacher_fea.T)
+        ss = self.graph_sim(student_fea,student_fea.T)
+        st = self.graph_sim(st_fea,st_fea.T)
+
+        # 计算差异的 Frobenius 范数平方
+        diff_ES_ET = torch.norm(ss - tt, p='fro') ** 2
+        diff_ES_ETS = torch.norm(ss - st, p='fro') ** 2
+        diff_ET_ETS = torch.norm(tt - st, p='fro') ** 2
+        sum_of_squares = diff_ES_ET + diff_ES_ETS + diff_ET_ETS
+        m = 300
+        eca = sum_of_squares 
+        return eca
+    
+    def graph_sim(self,A,B):
+        norm_A = torch.norm(A)
+        norm_B = torch.norm(B)
+        sim = torch.matmul(A,B)  ##### torch.Size([6, 6])       similarity
+        graph = sim / (norm_A * norm_B)
+        return graph

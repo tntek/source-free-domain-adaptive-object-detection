@@ -1,0 +1,1 @@
+[09/27 17:11:58] detectron2 INFO: Rank of current process: 0. World size: 1
